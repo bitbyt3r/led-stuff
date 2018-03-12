@@ -31,6 +31,9 @@ class Flaschen(object):
     self._data[-1 * len(footer):] = footer
     self._header_len = len(header)
 
+  def set_all(self, data):
+    self._data[self._header_len:self._header_len+len(data)+1] = data
+
   def set(self, x, y, color):
     '''Set the pixel at the given coordinates to the specified color.
 
@@ -39,11 +42,6 @@ class Flaschen(object):
       y: y offset of the piyel to set
       color: A 3 tuple of (r, g, b) color values, 0-255
     '''
-    if x >= self.width or y >= self.height or x < 0 or y < 0:
-      return
-    if color == (0, 0, 0) and not self.transparent:
-      color = (1, 1, 1)
-
     offset = (x + y * self.width) * 3 + self._header_len
     self._data[offset] = color[0]
     self._data[offset + 1] = color[1]
