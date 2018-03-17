@@ -14,10 +14,10 @@
 #include "portaudio.h"
 
 #define BUFSIZE 65536
-#define VOLUME 250
-#define FPS 30
+#define VOLUME -250
+#define FPS 60
 #define FRAMECOUNT 44100 / FPS
-
+#define FADE 
 /* 
  * error - wrapper for perror
  */
@@ -66,21 +66,56 @@ int display(const float *input,
     sprintf(buf, "P6\n512 32\n255\n");
     msglen = 14;
     int color = 1;
+    int start = 0;
+    int sign = input[start] > 0;
+    for (start=1;start<frameCount-512;start++) {
+      if (!sign && input[start]>0) {
+        break;
+      }
+      sign = input[start] > 0;
+    }
+    int on = 0;
     for (int y=0;y<32;y++) {
       for (int x=0;x<512;x++) {
-        color = 1;
+        on = 0;
         if (y <= 16) {
-          if (input[x]*VOLUME+16 <= y) {
-            color = 255;
+          if (input[x+start]*VOLUME+16 <= y) {
+            on = 1;
           }
         } else {
-          if (y <= input[x]*VOLUME+16) {
-            color = 255;
+          if (y <= input[x+start]*VOLUME+16) {
+            on = 1;
           }
         }
-        buf[3*(512*y+x)+14] = color;
-        buf[3*(512*y+x)+15] = color;
-        buf[3*(512*y+x)+16] = color;
+        if (on) {
+          buf[3*(512*y+x)+14] = 127;
+          buf[3*(512*y+x)+15] = 127;
+          buf[3*(512*y+x)+16] = 127;
+        }
+#ifdef FADE
+        else {
+          if (buf[3*(512*y+x)+14] > 10)
+            buf[3*(512*y+x)+14] = buf[3*(512*y+x)+14] / 2;
+          else
+            buf[3*(512*y+x)+14] = 0;
+
+          if (buf[3*(512*y+x)+15] > 10)
+            buf[3*(512*y+x)+15] = buf[3*(512*y+x)+15] / 2; 
+          else
+            buf[3*(512*y+x)+15] = 0;
+
+          if (buf[3*(512*y+x)+16] > 15)
+            buf[3*(512*y+x)+16] = buf[3*(512*y+x)+16] - 15;
+          else
+            buf[3*(512*y+x)+16] = 0;
+        }
+#else
+        else {
+          buf[3*(512*y+x)+14] = 0;
+          buf[3*(512*y+x)+15] = 0;
+          buf[3*(512*y+x)+16] = 0;
+        }
+#endif
         msglen = msglen + 3;
       }
     }
@@ -96,7 +131,7 @@ int main(int argc, char **argv) {
     running = 1;
     signal(SIGINT, intHandler);
     
-    host = "10.1.253.237";
+    host = "10.1.255.209";
     port = 1337;
 
     /* socket: create the socket */
@@ -143,6 +178,7 @@ int main(int argc, char **argv) {
         printf(  "PortAudio error: %s\n", Pa_GetErrorText( err ) );    
     
     while (running) {
+        sleep(1);
     }
     
     err = Pa_StopStream( stream );

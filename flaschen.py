@@ -1,3 +1,17 @@
+# -*- mode: python; c-basic-offset: 2; indent-tabs-mode: nil; -*-
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 2.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://gnu.org/licenses/gpl-2.0.txt>
+
 import socket
 
 class Flaschen(object):
@@ -31,9 +45,6 @@ class Flaschen(object):
     self._data[-1 * len(footer):] = footer
     self._header_len = len(header)
 
-  def set_all(self, data):
-    self._data[self._header_len:self._header_len+len(data)+1] = data
-
   def set(self, x, y, color):
     '''Set the pixel at the given coordinates to the specified color.
 
@@ -42,6 +53,11 @@ class Flaschen(object):
       y: y offset of the piyel to set
       color: A 3 tuple of (r, g, b) color values, 0-255
     '''
+    if x >= self.width or y >= self.height or x < 0 or y < 0:
+      return
+    if color == (0, 0, 0) and not self.transparent:
+      color = (1, 1, 1)
+
     offset = (x + y * self.width) * 3 + self._header_len
     self._data[offset] = color[0]
     self._data[offset + 1] = color[1]
@@ -50,4 +66,3 @@ class Flaschen(object):
   def send(self):
     '''Send the updated pixels to the display.'''
     self._sock.send(self._data)
-

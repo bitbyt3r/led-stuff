@@ -15,12 +15,12 @@ ON = (0,255,0)
 RED = (255,0,0)
 OFF = (0,0,0)
 
-ft = flaschen.Flaschen('10.1.253.237', 1337, 512, 32, transparent=False)
+ft = flaschen.Flaschen('10.1.255.209', 1337, 512, 32, transparent=True, layer=2)
 
 plotMax = 3
 offset = 9
 plotStart = 0
-plotEnd = 512
+plotEnd = 1024
 periodsize = 1500
 bufferLength = 4800
 sampleRate = 44100
@@ -51,8 +51,8 @@ while True:
     buckets = [math.log(sum(x)/(len(x)+1)+1)-offset for x in buckets]
 #    with open("./fft_data", "w") as datafile:
 #        datafile.write(json.dumps(buckets))
-    for i in range(len(buckets)):
-        buckets[i] -= noiseOffset[i]
+#    for i in range(len(buckets)):
+#        buckets[i] -= noiseOffset[i]
     buckets = [min(int((x*rows)/plotMax),plotMax*rows) for x in buckets]
 
     for x in range(0,cols,3):
